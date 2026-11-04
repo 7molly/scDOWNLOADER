@@ -1,0 +1,7 @@
+downloads_cache/
+__pycache__/
+*.pyc
+.DS_Store
+SoundCloud Downloader.app/
+.git/
+temp.iconset/

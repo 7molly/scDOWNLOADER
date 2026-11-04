@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media & SoundCloud Downloader</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡️</text></svg>">
+</head>
+<body data-tab="soundcloud" data-os="auto">
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-group">
+        <div class="logo-icon" id="logoIcon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6" cy="18" r="3" fill="currentColor"/>
+            <circle cx="18" cy="16" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-title-row">
+            <h1 class="logo-title">Media <span>Downloader</span></h1>
+            <span class="badge-os" id="osBadge" title="Автоматически определенная ОС">
+              <span id="osIcon">🍎</span>
+              <span id="osName">macOS</span>
+            </span>
+          </div>
+          <p class="logo-subtitle" id="logoSubtitle">SoundCloud, YouTube & TikTok Downloader</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnHistory" class="btn-icon" title="История загрузок">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="badge" id="historyBadge" style="display: none;">0</span>
+        </button>
+        <button id="btnSettings" class="btn-icon" title="Настройки">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tabSoundCloud" data-target="soundcloud">
+        <span class="tab-icon">☁️</span>
+        <span class="tab-label">SoundCloud</span>
+        <span class="tab-badge">MP3 + Альбомы</span>
+      </button>
+
+      <button class="nav-tab" id="tabVideo" data-target="video">
+        <span class="tab-icon">🎬</span>
+        <span class="tab-label">ЮТУБ / ТИКТОК</span>
+        <span class="tab-badge">Видео & MP3</span>
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      
+      <!-- Search Input Section -->
+      <section class="card input-card">
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            id="urlInput" 
+            placeholder="Вставьте ссылку на трек или альбом SoundCloud..." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div class="input-btns">
+            <button id="btnPaste" class="btn-text" title="Вставить из буфера">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              </svg>
+              Вставить (<span id="pasteShortcut">⌘V</span>)
+            </button>
+            <button id="btnInspect" class="btn-primary">
+              <span class="btn-spinner" id="inspectSpinner" style="display: none;"></span>
+              <span id="inspectText">Найти</span>
+            </button>
+          </div>
+        </div>
+        <div class="hint-text" id="hintText">
+          <span>Поддерживаются:</span> одиночные треки и плейлисты/альбомы (со ссылками вида <code>soundcloud.com/artist/sets/...</code>)
+        </div>
+      </section>
+
+      <!-- Error Alert -->
+      <div id="errorAlert" class="alert alert-error" style="display: none;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="errorMsg">Ошибка</span>
+      </div>
+
+      <!-- Preview Card (Loaded metadata) -->
+      <section id="previewCard" class="card preview-card" style="display: none;">
+        <div class="preview-layout">
+          <div class="preview-art-wrapper">
+            <img id="prevArtwork" src="" alt="Cover Artwork" class="preview-artwork">
+            <div class="art-overlay-tag" id="artOverlayTag">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <span id="artOverlayText">Вшивается в MP3</span>
+            </div>
+          </div>
+
+          <div class="preview-details">
+            <div class="preview-badges">
+              <span id="prevPlatformBadge" class="badge-tag badge-platform">SoundCloud</span>
+              <span id="prevTypeBadge" class="badge-tag badge-album">💿 Альбом</span>
+              <span id="prevCountBadge" class="badge-tag badge-count">5 треков</span>
+            </div>
+
+            <h2 id="prevTitle" class="preview-title">Название</h2>
+            <p id="prevArtist" class="preview-artist">Автор / Канал</p>
+
+            <!-- Mode Selector (For YouTube / TikTok / Video tab) -->
+            <div id="videoModeSelector" class="mode-selector-box" style="display: none;">
+              <span class="mode-label">Выберите формат загрузки:</span>
+              <div class="mode-toggle-group">
+                <button type="button" class="mode-btn active" id="btnModeVideo" data-mode="video">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  <span>Видео (MP4)</span>
+                </button>
+                <button type="button" class="mode-btn" id="btnModeAudio" data-mode="audio">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                  </svg>
+                  <span>Только MP3 (Звук)</span>
+                </button>
+              </div>
+
+              <!-- Video Quality dropdown -->
+              <div id="qualityRow" class="quality-row">
+                <label for="qualitySelect">Качество видео:</label>
+                <select id="qualitySelect" class="quality-select">
+                  <option value="best">Максимальное (1080p / 4K / Исходное)</option>
+                  <option value="720">720p HD (Быстро и компактно)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Destination Selection Block -->
+            <div class="destination-box">
+              <div class="destination-header">
+                <span class="dest-label" id="destLabel">📁 Сохранить в:</span>
+                <button id="btnBrowseFolder" class="btn-browse" title="Выбрать папку">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span id="browseBtnLabel">Выбрать папку...</span>
+                </button>
+              </div>
+
+              <div class="dest-path-row">
+                <input type="text" id="targetFolderInput" class="dest-input" spellcheck="false">
+              </div>
+
+              <!-- Extra folder name input for albums -->
+              <div id="albumSubfolderRow" class="album-folder-row" style="display: none;">
+                <span class="dest-sublabel">Название папки альбома:</span>
+                <input type="text" id="albumFolderInput" class="album-folder-input" spellcheck="false">
+              </div>
+
+              <div class="dest-preview-path">
+                Итоговый путь: <span id="fullPathPreview">...</span>
+              </div>
+            </div>
+
+            <!-- Download Button -->
+            <div class="preview-actions">
+              <button id="btnStartDownload" class="btn-download">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span id="downloadBtnText">Скачать в MP3</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tracklist preview for albums -->
+        <div id="tracklistSection" class="tracklist-box" style="display: none;">
+          <div class="tracklist-header">
+            <span>Список треков альбома:</span>
+          </div>
+          <ul id="tracklistItems" class="tracklist-items"></ul>
+        </div>
+      </section>
+
+      <!-- Active Download Progress Card -->
+      <section id="progressCard" class="card progress-card" style="display: none;">
+        <div class="progress-header">
+          <div>
+            <span class="progress-status-badge" id="progStageBadge">Загрузка...</span>
+            <h3 id="progTitle" class="prog-title">Скачивание...</h3>
+            <p id="progCurrentTrack" class="prog-current-track">Подготовка к загрузке...</p>
+          </div>
+          <button id="btnCancelDownload" class="btn-cancel" title="Остановить загрузку">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="6" width="12" height="12"/>
+            </svg>
+            Отмена
+          </button>
+        </div>
+
+        <div class="progress-bar-container">
+          <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+        </div>
+
+        <div class="progress-meta">
+          <div class="meta-item">
+            <span class="meta-label">Прогресс:</span>
+            <span class="meta-val" id="progPercent">0%</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Скорость:</span>
+            <span class="meta-val" id="progSpeed">--</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Осталось:</span>
+            <span class="meta-val" id="progEta">--</span>
+          </div>
+          <div class="meta-item" id="progItemsWrapper">
+            <span class="meta-label">Файл:</span>
+            <span class="meta-val" id="progItemCount">1 / 1</span>
+          </div>
+        </div>
+
+        <!-- Terminal log toggle -->
+        <details class="log-details">
+          <summary>Логи консоли</summary>
+          <pre id="logOutput" class="log-box"></pre>
+        </details>
+      </section>
+
+      <!-- Completion Banner -->
+      <section id="doneCard" class="card done-card" style="display: none;">
+        <div class="done-content">
+          <div class="done-icon">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <h3 id="doneTitle">Скачивание завершено!</h3>
+            <p id="doneSubtitle" class="done-subtitle">Файлы успешно сохранены на ваш компьютер.</p>
+            <p class="done-path" id="donePathText"></p>
+          </div>
+        </div>
+        <div class="done-actions">
+          <a id="btnDownloadFileAgain" class="btn-primary btn-link-download" style="display: none;" download>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="downloadFileBtnText">📥 Скачать файл</span>
+          </a>
+          <button id="btnOpenInFinder" class="btn-finder">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span id="openManagerBtnLabel">Открыть папку</span>
+          </button>
+          <button id="btnNewDownload" class="btn-secondary">
+            Скачать еще
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-backdrop" style="display: none;">
+      <div class="modal card">
+        <div class="modal-header">
+          <h3>Настройки (<span id="settingsOsName">macOS</span>)</h3>
+          <button id="btnCloseSettings" class="btn-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="setting-item">
+            <label class="setting-label">Папка для альбомов SoundCloud:</label>
+            <div class="setting-row">
+              <input type="text" id="cfgAlbumDir" class="dest-input" spellcheck="false">
+              <button id="btnBrowseCfgAlbum" class="btn-browse">Обзор...</button>
+            </div>
+            <p class="setting-hint">При скачивании альбома внутри этой папки будет создана папка с его названием.</p>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Папка для одиночных треков SoundCloud:</label>
+            <div class="setting-row">
+              <input type="text" id="cfgTracksDir" class="dest-input" spellcheck="false">
+              <button id="btnBrowseCfgTracks" class="btn-browse">Обзор...</button>
+            </div>
+            <p class="setting-hint">Одиночные треки сохраняются сюда с форматом <code>Исполнитель - Трек.mp3</code>.</p>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Папка для видео (YouTube / TikTok):</label>
+            <div class="setting-row">
+              <input type="text" id="cfgVideoDir" class="dest-input" spellcheck="false">
+              <button id="btnBrowseCfgVideo" class="btn-browse">Обзор...</button>
+            </div>
+            <p class="setting-hint">Папка для сохранения видеороликов в формате MP4.</p>
+          </div>
+
+          <div class="setting-item">
+            <label class="setting-label">Папка для извлеченного аудио (MP3 с YouTube / TikTok):</label>
+            <div class="setting-row">
+              <input type="text" id="cfgAudioDir" class="dest-input" spellcheck="false">
+              <button id="btnBrowseCfgAudio" class="btn-browse">Обзор...</button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="cfgNumberTracks">
+              <span>Добавлять номер трека в альбомах (01. Трек, 02. Трек)</span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="cfgAutoOpen">
+              <span id="autoOpenLabel">Автоматически открывать папку после скачивания</span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="cfgNotifications">
+              <span id="notifLabel">Отправлять системное уведомление</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnSaveSettings" class="btn-primary">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Drawer / Modal -->
+    <div id="historyModal" class="modal-backdrop" style="display: none;">
+      <div class="modal modal-wide card">
+        <div class="modal-header">
+          <h3>История скачиваний</h3>
+          <div class="modal-header-actions">
+            <button id="btnClearHistory" class="btn-text btn-danger-text">Очистить историю</button>
+            <button id="btnCloseHistory" class="btn-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div id="historyList" class="history-list">
+            <p class="history-empty">История пока пуста</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>SoundCloud & YouTube / TikTok Downloader • Поддержка macOS & Windows • MP4 & MP3 320 kbps</span>
+    </footer>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

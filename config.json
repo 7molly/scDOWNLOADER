@@ -1,0 +1,11 @@
+{
+  "album_base_dir": "~/Music/SoundCloud",
+  "single_tracks_dir": "~/Downloads",
+  "video_dir": "~/Downloads",
+  "audio_dir": "~/Downloads",
+  "default_video_quality": "best",
+  "number_tracks": true,
+  "auto_open_folder": true,
+  "show_notifications": true,
+  "port": 5077
+}

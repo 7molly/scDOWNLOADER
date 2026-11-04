@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: scdown-media-downloader
+    env: docker
+    plan: free
+    region: oregon
+    autoDeploy: true
+    envVars:
+      - key: CLOUD_MODE
+        value: "1"
