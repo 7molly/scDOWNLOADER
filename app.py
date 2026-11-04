@@ -409,7 +409,7 @@ class DownloadManager:
             ] + reliability_flags
 
             if platform == "youtube":
-                cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+                cmd += ["--geo-bypass", "--extractor-args", "youtube:player_client=visionos,android_vr"]
 
             cmd.append(url)
 
@@ -437,7 +437,7 @@ class DownloadManager:
             ] + reliability_flags
 
             if platform == "youtube":
-                cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+                cmd += ["--geo-bypass", "--extractor-args", "youtube:player_client=visionos,android_vr"]
 
             cmd.append(url)
 
@@ -612,10 +612,11 @@ def inspect_media_url(url: str, tab="auto") -> dict:
         YT_DLP_BIN,
         "--flat-playlist",
         "-J",
-        "--socket-timeout", "20"
+        "--socket-timeout", "20",
+        "--geo-bypass"
     ]
     if platform == "youtube":
-        cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+        cmd += ["--extractor-args", "youtube:player_client=visionos,android_vr"]
 
     cmd.append(url)
 
@@ -623,8 +624,14 @@ def inspect_media_url(url: str, tab="auto") -> dict:
     if res.returncode != 0:
         err = res.stderr.strip() or "Не удалось получить информацию о медиафайле"
         # Friendly error messages
-        if "Sign in to confirm you're not a bot" in err:
+        if "This video is unavailable" in err:
+            err = "Видео недоступно на YouTube или ссылка указана с ошибкой. Проверьте правильность ссылки."
+        elif "Private video" in err:
+            err = "Это приватное видео, доступ к нему ограничен автором."
+        elif "Sign in to confirm you're not a bot" in err:
             err = "YouTube запросил подтверждение. Повторите запрос через несколько секунд."
+        elif "HTTP Error 429" in err:
+            err = "YouTube временно ограничил запросы с этого IP. Повторите запрос через несколько секунд."
         raise ValueError(err)
 
     info = json.loads(res.stdout)
