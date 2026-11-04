@@ -6,11 +6,12 @@ ENV PYTHONUNBUFFERED=1
 ENV CLOUD_MODE=1
 ENV PORT=8080
 
-# Install ffmpeg, curl and certificates
+# Install ffmpeg, curl, certificates and nodejs (required by yt-dlp to solve YouTube JS challenges)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
     ca-certificates \
+    nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Install latest yt-dlp binary

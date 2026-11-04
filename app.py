@@ -4,6 +4,7 @@
 """
 SoundCloud & YouTube / TikTok Downloader
 Cross-platform Desktop & Cloud Web Application (Docker / Render / Railway / Local)
+Optimized for Mobile Devices & Long Videos (up to 2 hours)
 """
 
 import os
@@ -29,6 +30,8 @@ IS_MAC = sys.platform == "darwin"
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")
 IS_CLOUD = bool(os.environ.get("CLOUD_MODE") or os.environ.get("RENDER") or os.environ.get("RAILWAY_STATIC_URL") or os.environ.get("DYNO"))
+
+MAX_VIDEO_DURATION_SECONDS = 7200  # 2 hours limit
 
 def get_os_type() -> str:
     if IS_CLOUD:
@@ -344,6 +347,14 @@ class DownloadManager:
         download_file_name = ""
         full_folder = ""
 
+        # Common reliability flags for long videos (up to 2 hours)
+        reliability_flags = [
+            "--socket-timeout", "30",
+            "--retries", "10",
+            "--fragment-retries", "10",
+            "--buffersize", "16K"
+        ]
+
         # Cloud mode or Local mode target
         if platform == "soundcloud" and is_album:
             album_title = sanitize_filename(job.get("album_title") or "SoundCloud Album")
@@ -370,8 +381,7 @@ class DownloadManager:
                 "--ffmpeg-location", FFMPEG_BIN,
                 "--parse-metadata", "%(playlist_title,title)s:%(album)s",
                 "-o", output_tpl,
-                url
-            ]
+            ] + reliability_flags + [url]
 
         elif mode == "video":
             full_folder = str(job_dir)
@@ -380,6 +390,8 @@ class DownloadManager:
             quality = job.get("quality", cfg.get("default_video_quality", "best"))
             if quality == "720":
                 fmt = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best"
+            elif quality == "480":
+                fmt = "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best"
             else:
                 fmt = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best"
 
@@ -394,8 +406,12 @@ class DownloadManager:
                 "--windows-filenames",
                 "--ffmpeg-location", FFMPEG_BIN,
                 "-o", output_tpl,
-                url
-            ]
+            ] + reliability_flags
+
+            if platform == "youtube":
+                cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+
+            cmd.append(url)
 
         else:
             full_folder = str(job_dir)
@@ -418,8 +434,12 @@ class DownloadManager:
                 "--windows-filenames",
                 "--ffmpeg-location", FFMPEG_BIN,
                 "-o", output_tpl,
-                url
-            ]
+            ] + reliability_flags
+
+            if platform == "youtube":
+                cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+
+            cmd.append(url)
 
         self.broadcast("start", {
             "title": job.get("title", ""),
@@ -495,10 +515,8 @@ class DownloadManager:
             return_code = proc.returncode
 
             if return_code == 0:
-                # Prepare direct browser download file
                 download_url = ""
                 if is_album:
-                    # Package album into a clean .zip
                     zip_name = f"{album_title}.zip"
                     zip_path = job_dir / zip_name
                     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
@@ -512,13 +530,12 @@ class DownloadManager:
                     download_file_name = zip_name
                     download_url = f"/api/download-file?id={job_id}&file={urllib.parse.quote(zip_name)}"
                 else:
-                    # Find resulting file (.mp3 or .mp4)
                     media_files = list(job_dir.glob("*.mp3")) + list(job_dir.glob("*.mp4"))
                     if media_files:
                         download_file_name = media_files[0].name
                         download_url = f"/api/download-file?id={job_id}&file={urllib.parse.quote(download_file_name)}"
 
-                # If local user specified local folder, copy there too
+                # Local mode disk saving
                 if not IS_CLOUD and job.get("target_folder"):
                     try:
                         dest = Path(os.path.expanduser(job["target_folder"]))
@@ -569,7 +586,7 @@ class DownloadManager:
             else:
                 self.broadcast("error", {
                     "success": False,
-                    "message": f"Ошибка скачивания (код {return_code}). Проверьте доступность контента."
+                    "message": f"Ошибка скачивания (код {return_code}). Попробуйте другое качество или ссылку."
                 })
 
         except Exception as ex:
@@ -595,17 +612,31 @@ def inspect_media_url(url: str, tab="auto") -> dict:
         YT_DLP_BIN,
         "--flat-playlist",
         "-J",
-        url
+        "--socket-timeout", "20"
     ]
+    if platform == "youtube":
+        cmd += ["--extractor-args", "youtube:player_client=android,ios,web"]
+
+    cmd.append(url)
+
     res = subprocess.run(cmd, capture_output=True, text=True, env=os.environ)
     if res.returncode != 0:
-        raise ValueError(res.stderr.strip() or "Не удалось получить информацию о медиафайле")
+        err = res.stderr.strip() or "Не удалось получить информацию о медиафайле"
+        # Friendly error messages
+        if "Sign in to confirm you're not a bot" in err:
+            err = "YouTube запросил подтверждение. Повторите запрос через несколько секунд."
+        raise ValueError(err)
 
     info = json.loads(res.stdout)
     _type = info.get("_type", "")
     entries = info.get("entries") or []
 
     is_album = (platform == "soundcloud") and ((_type == "playlist") or ("/sets/" in url) or (len(entries) > 1))
+
+    duration = info.get("duration")
+    if duration and duration > MAX_VIDEO_DURATION_SECONDS:
+        dur_mins = int(duration // 60)
+        raise ValueError(f"Видео слишком длинное ({dur_mins} мин). Максимальная поддерживаемая длительность — 2 часа (120 мин).")
 
     thumbnail = ""
     thumbnails = info.get("thumbnails") or []
@@ -623,7 +654,6 @@ def inspect_media_url(url: str, tab="auto") -> dict:
     uploader = info.get("uploader") or info.get("creator") or info.get("channel") or info.get("artist") or platform.capitalize()
 
     track_count = len(entries) if is_album else 1
-    duration = info.get("duration")
 
     cfg = load_config()
 
@@ -764,6 +794,7 @@ class AppRequestHandler(BaseHTTPRequestHandler):
                 "job": DOWNLOADER.current_job,
                 "os": get_os_type(),
                 "is_cloud": IS_CLOUD,
+                "max_duration_seconds": MAX_VIDEO_DURATION_SECONDS,
                 "yt_dlp": YT_DLP_BIN,
                 "ffmpeg": FFMPEG_BIN
             })

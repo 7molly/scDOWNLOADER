@@ -132,11 +132,15 @@ function applyOSToUI(os, cloudFlag = false) {
     osIcon.textContent = "☁️";
     osName.textContent = "Облако / Web";
     settingsOsName.textContent = "Облако";
-    pasteShortcut.textContent = "Ctrl/⌘+V";
+    pasteShortcut.textContent = "Вставить";
     browseBtnLabel.textContent = "Загрузка в браузер";
     openManagerBtnLabel.textContent = "Скачать файл";
     autoOpenLabel.textContent = "Автоматически начинать скачивание в браузере";
     notifLabel.textContent = "Показывать уведомления браузера";
+    if (btnBrowseFolder) btnBrowseFolder.style.display = "none";
+    if (targetFolderInput) targetFolderInput.parentElement.style.display = "none";
+    if (fullPathPreview) fullPathPreview.parentElement.style.display = "none";
+    if (destLabel) destLabel.innerHTML = "📥 Файл сохранится напрямую в <b>Загрузки</b> на вашем устройстве";
   } else if (os === "windows") {
     osIcon.textContent = "🪟";
     osName.textContent = "Windows";
@@ -252,20 +256,20 @@ function switchTab(tab) {
   activeTab = tab;
   document.body.dataset.tab = tab;
 
-  const osTitle = detectedOS === "windows" ? "для Windows" : "для macOS";
+  const osTitle = isCloudMode ? "" : (detectedOS === "windows" ? "для Windows" : "для macOS");
 
   if (tab === "soundcloud") {
     tabSoundCloud.classList.add("active");
     tabVideo.classList.remove("active");
     urlInput.placeholder = "Вставьте ссылку на трек или альбом SoundCloud...";
     hintText.innerHTML = "<span>Поддерживаются:</span> одиночные треки и плейлисты/альбомы (со ссылками вида <code>soundcloud.com/artist/sets/...</code>)";
-    logoSubtitle.textContent = `Скачивание треков и альбомов с обложками в MP3 ${osTitle}`;
+    logoSubtitle.textContent = `Скачивание треков и альбомов с обложками в MP3 ${osTitle}`.trim();
   } else {
     tabVideo.classList.add("active");
     tabSoundCloud.classList.remove("active");
     urlInput.placeholder = "Вставьте ссылку на видео YouTube, Shorts или TikTok...";
-    hintText.innerHTML = "<span>Поддерживаются:</span> YouTube (видео, Shorts, плейлисты) и TikTok (клипы)";
-    logoSubtitle.textContent = `Скачивание видео (MP4) или извлечение MP3 ${osTitle}`;
+    hintText.innerHTML = "<span>Поддерживаются:</span> YouTube (видео до 2 часов, Shorts, плейлисты) и TikTok (клипы)";
+    logoSubtitle.textContent = `Скачивание видео (MP4) или извлечение MP3 ${osTitle}`.trim();
   }
 
   hideError();
@@ -469,10 +473,10 @@ function renderPreview(data) {
     if (data.is_album) {
       prevTypeBadge.textContent = "💿 Альбом / Сет";
       prevTypeBadge.className = "badge-tag badge-album";
-      destLabel.textContent = "📁 Создать папку альбома в:";
+      destLabel.innerHTML = isCloudMode ? "📥 Альбом скачается в ZIP-архиве в <b>Загрузки</b>" : "📁 Создать папку альбома в:";
       targetFolderInput.value = currentConfig?.album_base_dir || "~/Music/SoundCloud";
       albumFolderInput.value = data.suggested_folder_name || data.title;
-      albumSubfolderRow.style.display = "flex";
+      albumSubfolderRow.style.display = isCloudMode ? "none" : "flex";
       downloadBtnText.textContent = `Скачать альбом в MP3 (${data.track_count} треков)`;
       artOverlayText.textContent = "Вшивается в каждый MP3";
 
@@ -490,7 +494,7 @@ function renderPreview(data) {
     } else {
       prevTypeBadge.textContent = "🎵 Одиночный трек";
       prevTypeBadge.className = "badge-tag badge-track";
-      destLabel.textContent = "📁 Сохранить трек в:";
+      destLabel.innerHTML = isCloudMode ? "📥 Трек сохранится в <b>Загрузки</b>" : "📁 Сохранить трек в:";
       targetFolderInput.value = currentConfig?.single_tracks_dir || "~/Downloads";
       albumSubfolderRow.style.display = "none";
       downloadBtnText.textContent = "Скачать трек в MP3 (320 kbps)";
@@ -519,14 +523,14 @@ function setVideoMode(mode) {
     btnModeVideo.classList.add("active");
     btnModeAudio.classList.remove("active");
     qualityRow.style.display = "flex";
-    destLabel.textContent = "📁 Сохранить видео в:";
+    destLabel.innerHTML = isCloudMode ? "📥 Видео сохранится напрямую в <b>Загрузки</b>" : "📁 Сохранить видео в:";
     targetFolderInput.value = currentConfig?.video_dir || "~/Downloads";
     artOverlayText.textContent = "Превью видео";
   } else {
     btnModeAudio.classList.add("active");
     btnModeVideo.classList.remove("active");
     qualityRow.style.display = "none";
-    destLabel.textContent = "📁 Сохранить аудио MP3 в:";
+    destLabel.innerHTML = isCloudMode ? "📥 Аудио MP3 сохранится напрямую в <b>Загрузки</b>" : "📁 Сохранить аудио MP3 в:";
     targetFolderInput.value = currentConfig?.audio_dir || "~/Downloads";
     artOverlayText.textContent = "Вшивается в MP3";
   }
@@ -538,7 +542,9 @@ function updateDownloadButtonAndPath() {
   if (currentInspection.platform === "soundcloud") return;
 
   if (currentMode === "video") {
-    const qText = qualitySelect.value === "720" ? "720p HD" : "Макс. качество";
+    let qText = "Макс. качество";
+    if (qualitySelect.value === "720") qText = "720p HD";
+    else if (qualitySelect.value === "480") qText = "480p SD";
     downloadBtnText.textContent = `Скачать видео в MP4 (${qText})`;
   } else {
     downloadBtnText.textContent = "Извлечь аудио в MP3 (320 kbps + обложка)";
