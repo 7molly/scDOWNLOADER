@@ -347,12 +347,11 @@ class DownloadManager:
         download_file_name = ""
         full_folder = ""
 
-        # Common reliability flags for long videos (up to 2 hours)
+        # Common reliability flags
         reliability_flags = [
             "--socket-timeout", "30",
             "--retries", "10",
-            "--fragment-retries", "10",
-            "--buffersize", "16K"
+            "--fragment-retries", "10"
         ]
 
         # Cloud mode or Local mode target
@@ -468,10 +467,14 @@ class DownloadManager:
             with self.lock:
                 self.active_process = proc
 
+            last_lines = []
             for raw_line in iter(proc.stdout.readline, ""):
                 line = raw_line.strip()
                 if not line:
                     continue
+                last_lines.append(line)
+                if len(last_lines) > 6:
+                    last_lines.pop(0)
 
                 item_match = re.search(r'Downloading item (\d+) of (\d+)', line, re.I)
                 if item_match:
@@ -584,9 +587,16 @@ class DownloadManager:
                     "track_count": total_items if is_album else 1
                 })
             else:
+                err_hint = ""
+                for l in reversed(last_lines):
+                    if "error" in l.lower() or "warning" in l.lower():
+                        err_hint = f": {l}"
+                        break
+                if not err_hint and last_lines:
+                    err_hint = f": {last_lines[-1]}"
                 self.broadcast("error", {
                     "success": False,
-                    "message": f"Ошибка скачивания (код {return_code}). Попробуйте другое качество или ссылку."
+                    "message": f"Ошибка скачивания (код {return_code}){err_hint}. Попробуйте другое качество или ссылку."
                 })
 
         except Exception as ex:
